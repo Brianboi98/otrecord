@@ -8,23 +8,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Inter', sans-serif;
-            background-color: #f3f4f6;
-        }
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
         .table-container::-webkit-scrollbar { height: 8px; }
         .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
         .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
-        .table-container::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-        
-        input[type="date"]::-webkit-calendar-picker-indicator,
-        input[type="time"]::-webkit-calendar-picker-indicator { cursor: pointer; }
-        input[type="number"]::-webkit-inner-spin-button, 
-        input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-        
-        .pulse-dot {
-            animation: pulse 2s infinite;
-        }
+        .pulse-dot { animation: pulse 2s infinite; }
         @keyframes pulse {
             0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
             70% { transform: scale(1); box-shadow: 0 0 0 4px rgba(34, 197, 94, 0); }
@@ -42,13 +30,12 @@
                 <div class="flex items-center gap-3">
                     <h1 class="text-2xl font-bold text-gray-900">Overtime Tracker</h1>
                     <div id="cloud-status" class="hidden items-center gap-1.5 px-2.5 py-1 bg-green-50 border border-green-200 rounded-full text-green-700 text-xs font-semibold">
-                        <span class="w-2 h-2 rounded-full bg-green-500 pulse-dot"></span> ot-record Cloud Connected
+                        <span class="w-2 h-2 rounded-full bg-green-500 pulse-dot"></span> Cloud Connected
                     </div>
                 </div>
                 <p class="text-sm text-gray-500 mt-1">Standard Shift: 8:30 AM - 5:00 PM &bull; Rate: RM 13.00/hr</p>
             </div>
             
-            <!-- Summary Stats -->
             <div class="flex flex-col sm:flex-row gap-4 w-full md:w-auto mt-2 md:mt-0">
                 <div class="bg-blue-50 px-4 py-3 rounded-xl border border-blue-100 w-full sm:w-auto flex-1 text-center sm:text-left">
                     <p class="text-xs text-blue-600 font-medium uppercase tracking-wider">Total OT Hours</p>
@@ -63,27 +50,22 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- Input Form (3-Tier Pyramid Layout) -->
+            <!-- Input Form -->
             <div class="lg:col-span-1 min-w-0">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative">
+                    
                     <!-- Loading overlay for form -->
-                    <div id="form-overlay" class="absolute inset-0 bg-white/70 z-10 rounded-2xl flex items-center justify-center backdrop-blur-[1px]">
-                        <div class="flex flex-col items-center gap-2">
-                            <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                            <span class="text-sm font-medium text-gray-700">Connecting to Cloud...</span>
-                        </div>
+                    <div id="form-overlay" class="absolute inset-0 bg-white/70 z-10 rounded-2xl flex flex-col items-center justify-center p-4 text-center backdrop-blur-[1px]">
+                        <svg class="animate-spin h-6 w-6 text-blue-600 mb-2" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <span class="text-sm font-medium text-gray-700">Connecting...</span>
                     </div>
 
                     <h2 class="text-lg font-semibold mb-5 border-b pb-2 text-center lg:text-left">Add New Shift</h2>
                     <form id="ot-form" class="space-y-4">
-                        
-                        <!-- Top of Pyramid (Date) -->
                         <div class="max-w-[220px] mx-auto">
                             <label class="block text-sm font-medium text-gray-700 mb-1 text-center">Date</label>
                             <input type="date" id="input-date" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-center">
                         </div>
-                        
-                        <!-- Middle of Pyramid (In / Out) -->
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-sm font-medium text-gray-700 mb-1 text-center">Clock In</label>
@@ -94,14 +76,12 @@
                                 <input type="time" id="input-out" required class="w-full px-2 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors text-center">
                             </div>
                         </div>
-
-                        <!-- Bottom of Pyramid (Deductions) -->
                         <div class="max-w-[220px] mx-auto pb-2">
                             <label class="block text-sm font-medium text-gray-700 mb-1 text-center">Extra Break (Mins)</label>
                             <input type="number" id="input-deduct" min="0" placeholder="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-colors text-center placeholder-gray-300">
                         </div>
                         
-                        <div id="error-message" class="hidden text-sm text-red-700 bg-red-50 p-3 rounded-lg text-center border border-red-100"></div>
+                        <div id="error-message" class="hidden text-xs text-red-700 bg-red-50 p-3 rounded-lg text-left border border-red-200 overflow-x-auto break-words font-mono"></div>
 
                         <button id="submit-btn" type="submit" disabled class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-2.5 px-4 rounded-lg transition-colors shadow-sm">
                             Calculate & Add
@@ -130,14 +110,10 @@
                                     <th class="px-6 py-4 font-medium border-b text-center">Action</th>
                                 </tr>
                             </thead>
-                            <tbody id="entries-body" class="divide-y divide-gray-100">
-                                <!-- Entries will be injected here -->
-                            </tbody>
+                            <tbody id="entries-body" class="divide-y divide-gray-100"></tbody>
                         </table>
                         
-                        <!-- Empty State -->
                         <div id="empty-state" class="py-16 px-6 text-center text-gray-500 flex flex-col items-center justify-center w-full">
-                            <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             <p>No overtime logged yet.</p>
                         </div>
                     </div>
@@ -146,7 +122,7 @@
         </div>
     </div>
 
-    <!-- Application Logic and User's Custom Firebase Cloud Integration -->
+    <!-- Application Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -164,16 +140,14 @@
         };
         const appProjectName = 'ot-record';
 
-        // Constants for Overtime Rules
         const RATE_PER_HOUR = 13;
-        const SHIFT_START_MINS = 8 * 60 + 30; // 8:30 AM
-        const SHIFT_END_MINS = 17 * 60;       // 5:00 PM
+        const SHIFT_START_MINS = 8 * 60 + 30; 
+        const SHIFT_END_MINS = 17 * 60;       
         
         let currentUser = null;
         let entries = [];
         let db;
 
-        // DOM Elements
         const form = document.getElementById('ot-form');
         const inputDate = document.getElementById('input-date');
         const inputIn = document.getElementById('input-in');
@@ -191,10 +165,29 @@
 
         inputDate.valueAsDate = new Date();
 
-        // --- CALCULATION LOGIC ---
-        function timeToMinutes(timeStr) {
-            const [hours, minutes] = timeStr.split(':').map(Number);
-            return hours * 60 + minutes;
+        function showError(msg, rawError) {
+            formOverlay.classList.add('hidden');
+            errorMessage.innerHTML = `<strong>${msg}</strong><br><br>Detailed Error: <span class="text-red-500">${rawError}</span>`;
+            errorMessage.classList.remove('hidden');
+        }
+
+        function calculateOvertime(inTimeStr, outTimeStr, deductMins) {
+            const timeToMinutes = (timeStr) => {
+                const [hours, minutes] = timeStr.split(':').map(Number);
+                return hours * 60 + minutes;
+            }
+            let inMins = timeToMinutes(inTimeStr);
+            let outMins = timeToMinutes(outTimeStr);
+            if (outMins < inMins) outMins += 24 * 60; 
+
+            let morningOT = Math.max(0, Math.min(outMins, SHIFT_START_MINS) - Math.min(inMins, SHIFT_START_MINS));
+            let eveningOT = Math.max(0, Math.max(outMins, SHIFT_END_MINS) - Math.max(inMins, SHIFT_END_MINS));
+
+            let totalOTMins = Math.max(0, (morningOT + eveningOT) - deductMins); 
+            let decimalHours = totalOTMins / 60;
+            let payment = decimalHours * RATE_PER_HOUR;
+
+            return { totalOTMins, decimalHours, payment };
         }
 
         function formatHHMM(totalMinutes) {
@@ -203,33 +196,8 @@
             return `${hours}:${minutes.toString().padStart(2, '0')}`;
         }
 
-        function calculateOvertime(inTimeStr, outTimeStr, deductMins) {
-            let inMins = timeToMinutes(inTimeStr);
-            let outMins = timeToMinutes(outTimeStr);
-
-            if (outMins < inMins) outMins += 24 * 60; 
-
-            let morningEnd = Math.min(outMins, SHIFT_START_MINS);
-            let morningStart = Math.min(inMins, SHIFT_START_MINS);
-            let morningOT = Math.max(0, morningEnd - morningStart);
-
-            let eveningEnd = Math.max(outMins, SHIFT_END_MINS);
-            let eveningStart = Math.max(inMins, SHIFT_END_MINS);
-            let eveningOT = Math.max(0, eveningEnd - eveningStart);
-
-            let rawOTMins = morningOT + eveningOT;
-            let totalOTMins = Math.max(0, rawOTMins - deductMins); 
-
-            let decimalHours = totalOTMins / 60;
-            let payment = decimalHours * RATE_PER_HOUR;
-
-            return { totalOTMins, decimalHours, payment };
-        }
-
-        // --- UI RENDER LOGIC ---
         function renderTable() {
             entriesBody.innerHTML = '';
-            
             if (entries.length === 0) {
                 emptyState.style.display = 'flex';
                 clearAllBtn.classList.add('hidden');
@@ -244,30 +212,17 @@
 
             sortedEntries.forEach(entry => {
                 const tr = document.createElement('tr');
-                tr.className = 'hover:bg-gray-50 transition-colors';
-                
-                const dateObj = new Date(entry.date);
-                const dateDisplay = dateObj.toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' });
-
-                const deductHtml = entry.deductMins > 0 
-                    ? `<div class="text-xs text-red-500 mt-1 font-medium bg-red-50 inline-block px-1.5 py-0.5 rounded">- ${entry.deductMins}m deduct</div>` 
-                    : '';
+                tr.className = 'hover:bg-gray-50';
+                const dateDisplay = new Date(entry.date).toLocaleDateString('en-MY', { day: 'numeric', month: 'short', year: 'numeric' });
+                const deductHtml = entry.deductMins > 0 ? `<div class="text-xs text-red-500 mt-1 font-medium bg-red-50 inline-block px-1.5 py-0.5 rounded">- ${entry.deductMins}m deduct</div>` : '';
 
                 tr.innerHTML = `
                     <td class="px-6 py-4 font-medium text-gray-900">${dateDisplay}</td>
-                    <td class="px-6 py-4">
-                        <div class="text-sm text-gray-900">${entry.inTimeDisplay}</div>
-                        <div class="text-xs text-gray-500">to ${entry.outTimeDisplay}</div>
-                        ${deductHtml}
-                    </td>
+                    <td class="px-6 py-4"><div class="text-sm text-gray-900">${entry.inTimeDisplay}</div><div class="text-xs text-gray-500">to ${entry.outTimeDisplay}</div>${deductHtml}</td>
                     <td class="px-6 py-4 text-right font-medium text-blue-600">${entry.otHHMM}</td>
                     <td class="px-6 py-4 text-right text-gray-600">${parseFloat(entry.otDecimal).toFixed(2)} hr</td>
                     <td class="px-6 py-4 text-right font-bold text-emerald-600">RM ${entry.payment.toFixed(2)}</td>
-                    <td class="px-6 py-4 text-center">
-                        <button onclick="window.deleteEntry('${entry.id}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        </button>
-                    </td>
+                    <td class="px-6 py-4 text-center"><button onclick="window.deleteEntry('${entry.id}')" class="text-red-500 hover:text-red-700 bg-red-50 hover:bg-red-100 p-2 rounded-lg transition-colors"><svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg></button></td>
                 `;
                 entriesBody.appendChild(tr);
             });
@@ -277,77 +232,66 @@
         function updateSummary() {
             const totalDec = entries.reduce((sum, entry) => sum + parseFloat(entry.otDecimal), 0);
             const totalPay = entries.reduce((sum, entry) => sum + entry.payment, 0);
-
             summaryHours.textContent = totalDec.toFixed(2);
             summaryPayment.textContent = `RM ${totalPay.toFixed(2)}`;
         }
 
-        // --- FIREBASE CLOUD SETUP ---
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        db = getFirestore(app);
+        // Initialize Firebase
+        try {
+            const app = initializeApp(firebaseConfig);
+            const auth = getAuth(app);
+            db = getFirestore(app);
 
-        // Try to Sign In
-        signInAnonymously(auth).catch((error) => {
-            console.error("Auth error:", error);
-            // Hide the overlay so they can read the error!
-            formOverlay.classList.add('hidden');
-            errorMessage.innerHTML = "Auth Failed! Make sure <b>Anonymous</b> sign-in is enabled in your Firebase Authentication settings.";
-            errorMessage.classList.remove('hidden');
-        });
+            // Attempt Sign In
+            signInAnonymously(auth).catch((error) => {
+                console.error("Auth Exception:", error);
+                showError("Authentication Failed", `${error.code}: ${error.message}`);
+            });
 
-        // Listen to auth state
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            if (user) {
-                // Unlock the UI
-                formOverlay.classList.add('hidden');
-                cloudStatus.classList.replace('hidden', 'flex');
-                submitBtn.disabled = false;
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                if (user) {
+                    formOverlay.classList.add('hidden');
+                    cloudStatus.classList.replace('hidden', 'flex');
+                    submitBtn.disabled = false;
+                    errorMessage.classList.add('hidden');
 
-                // Watch the database for changes
-                const entriesRef = collection(db, 'artifacts', appProjectName, 'users', user.uid, 'overtime_shifts');
-                
-                onSnapshot(entriesRef, (snapshot) => {
-                    entries = [];
-                    snapshot.forEach(doc => {
-                        entries.push({ id: doc.id, ...doc.data() });
+                    const entriesRef = collection(db, 'artifacts', appProjectName, 'users', user.uid, 'overtime_shifts');
+                    
+                    onSnapshot(entriesRef, (snapshot) => {
+                        entries = [];
+                        snapshot.forEach(doc => { entries.push({ id: doc.id, ...doc.data() }); });
+                        renderTable();
+                    }, (error) => {
+                        console.error("Firestore Exception:", error);
+                        showError("Database Access Denied", `${error.code}: ${error.message}`);
                     });
-                    renderTable();
-                }, (error) => {
-                    console.error("Firestore Rules Error: ", error);
-                    // Database is blocking us! Show rules error.
-                    errorMessage.innerHTML = "Database blocked. You need to update your <b>Firestore Rules</b> to allow read/write access.";
-                    errorMessage.classList.remove('hidden');
-                });
-            }
-        });
+                }
+            });
+        } catch (setupError) {
+            showError("Firebase Setup Error", setupError.message);
+        }
 
-        // --- EVENT HANDLERS ---
+        // Form Submit
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
-            errorMessage.classList.add('hidden');
             if (!currentUser) return;
 
             const dateVal = inputDate.value;
             const inVal = inputIn.value;
             const outVal = inputOut.value;
             const deductVal = parseInt(inputDeduct.value) || 0;
-
             if (!dateVal || !inVal || !outVal) return;
 
             submitBtn.disabled = true;
             submitBtn.innerHTML = 'Saving...';
 
             const results = calculateOvertime(inVal, outVal, deductVal);
-            
             const formatAmPm = (timeStr) => {
                 const [h, m] = timeStr.split(':');
                 let hours = parseInt(h);
                 const ampm = hours >= 12 ? 'PM' : 'AM';
-                hours = hours % 12;
-                hours = hours ? hours : 12; 
-                return `${hours}:${m} ${ampm}`;
+                return `${hours % 12 || 12}:${m} ${ampm}`;
             };
 
             const entryData = {
@@ -365,13 +309,9 @@
             try {
                 const entriesRef = collection(db, 'artifacts', appProjectName, 'users', currentUser.uid, 'overtime_shifts');
                 await addDoc(entriesRef, entryData);
-                inputIn.value = '';
-                inputOut.value = '';
-                inputDeduct.value = '';
+                inputIn.value = ''; inputOut.value = ''; inputDeduct.value = '';
             } catch (error) {
-                console.error("Error adding document: ", error);
-                errorMessage.innerHTML = "Failed to save! Check Firestore Rules.";
-                errorMessage.classList.remove('hidden');
+                showError("Save Failed", `${error.code}: ${error.message}`);
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Calculate & Add';
@@ -384,7 +324,7 @@
                 const docRef = doc(db, 'artifacts', appProjectName, 'users', currentUser.uid, 'overtime_shifts', docId);
                 await deleteDoc(docRef);
             } catch (error) {
-                console.error("Error deleting document: ", error);
+                alert(`Delete Failed: ${error.message}`);
             }
         }
 
@@ -399,14 +339,13 @@
                         await deleteDoc(docRef);
                     }
                 } catch (error) {
-                    console.error("Error clearing documents: ", error);
+                    alert(`Clear Failed: ${error.message}`);
                 } finally {
                     clearAllBtn.textContent = 'Clear All';
                     clearAllBtn.disabled = false;
                 }
             }
         });
-
     </script>
 </body>
 </html>
