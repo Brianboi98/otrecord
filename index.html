@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -66,8 +67,11 @@
             <div class="lg:col-span-1 min-w-0">
                 <div class="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 relative">
                     <!-- Loading overlay for form -->
-                    <div id="form-overlay" class="absolute inset-0 bg-white/60 z-10 rounded-2xl flex items-center justify-center backdrop-blur-[1px]">
-                        <span class="text-sm font-medium text-gray-600">Connecting to your Firebase...</span>
+                    <div id="form-overlay" class="absolute inset-0 bg-white/70 z-10 rounded-2xl flex items-center justify-center backdrop-blur-[1px]">
+                        <div class="flex flex-col items-center gap-2">
+                            <svg class="animate-spin h-5 w-5 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            <span class="text-sm font-medium text-gray-700">Connecting to Cloud...</span>
+                        </div>
                     </div>
 
                     <h2 class="text-lg font-semibold mb-5 border-b pb-2 text-center lg:text-left">Add New Shift</h2>
@@ -93,11 +97,11 @@
 
                         <!-- Bottom of Pyramid (Deductions) -->
                         <div class="max-w-[220px] mx-auto pb-2">
-                            <label class="block text-sm font-medium text-gray-700 mb-1 text-center">Extra Break / Late (Mins)</label>
+                            <label class="block text-sm font-medium text-gray-700 mb-1 text-center">Extra Break (Mins)</label>
                             <input type="number" id="input-deduct" min="0" placeholder="0" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500 outline-none transition-colors text-center placeholder-gray-300">
                         </div>
                         
-                        <div id="error-message" class="hidden text-sm text-red-600 bg-red-50 p-2 rounded-md text-center"></div>
+                        <div id="error-message" class="hidden text-sm text-red-700 bg-red-50 p-3 rounded-lg text-center border border-red-100"></div>
 
                         <button id="submit-btn" type="submit" disabled class="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white font-medium py-2.5 px-4 rounded-lg transition-colors shadow-sm">
                             Calculate & Add
@@ -135,7 +139,6 @@
                         <div id="empty-state" class="py-16 px-6 text-center text-gray-500 flex flex-col items-center justify-center w-full">
                             <svg class="w-12 h-12 text-gray-300 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                             <p>No overtime logged yet.</p>
-                            <p class="text-sm mt-1">Add a shift to start calculating.</p>
                         </div>
                     </div>
                 </div>
@@ -186,7 +189,6 @@
         const cloudStatus = document.getElementById('cloud-status');
         const submitBtn = document.getElementById('submit-btn');
 
-        // Set default date to today
         inputDate.valueAsDate = new Date();
 
         // --- CALCULATION LOGIC ---
@@ -285,10 +287,12 @@
         const auth = getAuth(app);
         db = getFirestore(app);
 
-        // Sign in anonymously to your Firebase project
+        // Try to Sign In
         signInAnonymously(auth).catch((error) => {
             console.error("Auth error:", error);
-            errorMessage.innerHTML = "Could not authenticate. Make sure <b>Anonymous Sign-in</b> is enabled in your Firebase console.";
+            // Hide the overlay so they can read the error!
+            formOverlay.classList.add('hidden');
+            errorMessage.innerHTML = "Auth Failed! Make sure <b>Anonymous</b> sign-in is enabled in your Firebase Authentication settings.";
             errorMessage.classList.remove('hidden');
         });
 
@@ -301,7 +305,7 @@
                 cloudStatus.classList.replace('hidden', 'flex');
                 submitBtn.disabled = false;
 
-                // Path specific to your database setup
+                // Watch the database for changes
                 const entriesRef = collection(db, 'artifacts', appProjectName, 'users', user.uid, 'overtime_shifts');
                 
                 onSnapshot(entriesRef, (snapshot) => {
@@ -311,8 +315,9 @@
                     });
                     renderTable();
                 }, (error) => {
-                    console.error("Error fetching data: ", error);
-                    errorMessage.textContent = "Error reading from database. Check your Firestore Security Rules.";
+                    console.error("Firestore Rules Error: ", error);
+                    // Database is blocking us! Show rules error.
+                    errorMessage.innerHTML = "Database blocked. You need to update your <b>Firestore Rules</b> to allow read/write access.";
                     errorMessage.classList.remove('hidden');
                 });
             }
@@ -322,7 +327,6 @@
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
             errorMessage.classList.add('hidden');
-
             if (!currentUser) return;
 
             const dateVal = inputDate.value;
@@ -333,7 +337,7 @@
             if (!dateVal || !inVal || !outVal) return;
 
             submitBtn.disabled = true;
-            submitBtn.innerHTML = 'Adding...';
+            submitBtn.innerHTML = 'Saving...';
 
             const results = calculateOvertime(inVal, outVal, deductVal);
             
@@ -359,17 +363,14 @@
             };
 
             try {
-                // Save directly to your cloud
                 const entriesRef = collection(db, 'artifacts', appProjectName, 'users', currentUser.uid, 'overtime_shifts');
                 await addDoc(entriesRef, entryData);
-                
-                // Reset inputs
                 inputIn.value = '';
                 inputOut.value = '';
                 inputDeduct.value = '';
             } catch (error) {
                 console.error("Error adding document: ", error);
-                errorMessage.innerHTML = "Failed to save to cloud. Ensure <b>Firestore Database</b> is created in your Firebase Console.";
+                errorMessage.innerHTML = "Failed to save! Check Firestore Rules.";
                 errorMessage.classList.remove('hidden');
             } finally {
                 submitBtn.disabled = false;
@@ -384,14 +385,12 @@
                 await deleteDoc(docRef);
             } catch (error) {
                 console.error("Error deleting document: ", error);
-                alert("Could not delete entry from cloud.");
             }
         }
 
         clearAllBtn.addEventListener('click', async () => {
             if (!currentUser) return;
-            const customConfirm = confirm('Are you sure you want to permanently delete ALL tracked shifts from your Firebase?');
-            if (customConfirm) {
+            if (confirm('Are you sure you want to permanently delete ALL tracked shifts from your Firebase?')) {
                 try {
                     clearAllBtn.textContent = 'Clearing...';
                     clearAllBtn.disabled = true;
@@ -412,3 +411,5 @@
 </body>
 </html>
 
+
+```
