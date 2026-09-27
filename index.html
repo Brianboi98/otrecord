@@ -4,17 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Overtime Tracker (Modern)</title>
+    
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
     <style>
         :root {
-            --brand-primary: #4f46e5; /* Indigo 600 */
-            --brand-secondary: #0ea5e9; /* Sky 500 */
+            --brand-primary: #4f46e5;
+            --brand-secondary: #0ea5e9;
         }
         body { 
             font-family: 'Inter', sans-serif; 
-            background-color: #f8fafc; /* Slate 50 */
+            background-color: #f8fafc;
             background-image: radial-gradient(at 0% 0%, hsla(253,16%,7%,0.03) 0, transparent 50%), radial-gradient(at 50% 0%, hsla(225,39%,30%,0.03) 0, transparent 50%), radial-gradient(at 100% 0%, hsla(339,49%,30%,0.03) 0, transparent 50%);
             background-attachment: fixed;
         }
@@ -145,7 +152,6 @@
                                 </div>
                             </div>
 
-                            <!-- Recess Inputs -->
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="space-y-1.5">
                                     <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Recess Start</label>
@@ -153,6 +159,7 @@
                                         <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
                                             <i class="ph ph-coffee text-lg text-amber-500"></i>
                                         </div>
+                                        <!-- Changed to optional to allow logging shifts without specific recess times -->
                                         <input type="time" id="recess-out" class="w-full pl-10 pr-2 py-3 bg-slate-50 border-0 ring-1 ring-inset ring-slate-200 rounded-xl focus:ring-2 focus:ring-inset focus:ring-amber-500 focus:bg-white outline-none transition-all text-slate-700 font-medium sm:text-sm">
                                     </div>
                                 </div>
@@ -166,7 +173,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <p class="text-[11px] text-slate-500 mt-1"><i class="ph ph-info"></i> Standard recess is 1 hour (60 mins). Any extra will be deducted from OT.</p>
+                            <p class="text-[11px] text-slate-500 mt-1"><i class="ph ph-info"></i> Standard recess is 1 hour (60 mins). Any extra break time will be deducted from your OT.</p>
                             
                             <!-- Error Container -->
                             <div id="error-message" class="hidden text-xs text-rose-700 bg-rose-50 p-4 rounded-xl text-left border border-rose-100 overflow-x-auto break-words font-mono shadow-inner"></div>
@@ -245,7 +252,6 @@
         </div>
     </div>
 
-    <!-- Application Logic -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
@@ -264,8 +270,8 @@
         const appProjectName = 'ot-record';
 
         const RATE_PER_HOUR = 13;
-        const SHIFT_START_MINS = 8 * 60 + 30; 
-        const SHIFT_END_MINS = 17 * 60;       
+        const SHIFT_START_MINS = 8 * 60 + 30; // 8:30 AM
+        const SHIFT_END_MINS = 17 * 60;       // 5:00 PM
         
         let currentUser = null;
         let entries = [];
@@ -297,8 +303,10 @@
         const modalPanel = modal.querySelector('.modal-panel');
         let modalConfirmAction = null;
 
-        // Set default date to today
-        inputDate.valueAsDate = new Date();
+        // Fix Bug: Set default date to today based on Local Time, not UTC
+        const today = new Date();
+        const localDateStr = new Date(today.getTime() - (today.getTimezoneOffset() * 60000)).toISOString().split('T')[0];
+        inputDate.value = localDateStr;
 
         function openModal(title, message, confirmBtnText, action) {
             modalTitle.textContent = title;
@@ -319,7 +327,7 @@
             setTimeout(() => {
                 modal.classList.add('hidden');
                 modalConfirmAction = null;
-            }, 200); // match transition duration
+            }, 200);
         }
 
         modalCancel.addEventListener('click', closeModal);
@@ -341,7 +349,6 @@
             }
         });
 
-        // Error handling
         function showError(msg, rawError) {
             formOverlay.classList.add('hidden');
             errorMessage.innerHTML = `<strong><i class="ph-fill ph-warning-octagon text-rose-500 mr-1"></i> ${msg}</strong><br><span class="text-rose-500/80 mt-1 block">${rawError}</span>`;
@@ -357,9 +364,12 @@
             let outMins = timeToMinutes(outTimeStr);
             if (outMins < inMins) outMins += 24 * 60; // Handle cross-midnight shift
 
+            // Any time worked before 8:30 AM
             let morningOT = Math.max(0, Math.min(outMins, SHIFT_START_MINS) - Math.min(inMins, SHIFT_START_MINS));
+            // Any time worked after 5:00 PM
             let eveningOT = Math.max(0, Math.max(outMins, SHIFT_END_MINS) - Math.max(inMins, SHIFT_END_MINS));
 
+            // Subtract extra recess time from total OT
             let totalOTMins = Math.max(0, (morningOT + eveningOT) - deductMins); 
             let decimalHours = totalOTMins / 60;
             let payment = decimalHours * RATE_PER_HOUR;
@@ -397,6 +407,7 @@
                 const month = dateObj.toLocaleDateString('en-MY', { month: 'short' });
                 const year = dateObj.toLocaleDateString('en-MY', { year: 'numeric' });
                 
+                // Handle Recess Display
                 let deductHtml = '';
                 if (entry.recessMins !== undefined && entry.recessMins > 0) {
                     const extraMins = Math.max(0, entry.recessMins - 60);
@@ -410,7 +421,8 @@
                     }
                     
                     deductHtml = recessTimeDisplay + warningHtml;
-                } else if (entry.deductMins > 0) { // Fallback for legacy records
+                } else if (entry.deductMins > 0) { 
+                    // Fallback for legacy records (if any)
                     deductHtml = `<span class="inline-flex items-center gap-1 text-[10px] text-rose-600 bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded-full mt-1.5 font-medium"><i class="ph ph-minus"></i> ${entry.deductMins}m extra break</span>`;
                 }
 
@@ -466,7 +478,7 @@
             const auth = getAuth(app);
             db = getFirestore(app);
 
-            // Attempt Sign In
+            // Attempt Sign In (Anonymous is perfectly fine for standalone use)
             signInAnonymously(auth).catch((error) => {
                 console.error("Auth Exception:", error);
                 showError("Authentication Failed", `${error.code}: ${error.message}`);
@@ -496,7 +508,6 @@
             showError("Firebase Setup Error", setupError.message);
         }
 
-        // Form Submit
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
             if (!currentUser) return;
@@ -521,16 +532,18 @@
 
             let recessMins = 0;
             let deductVal = 0;
+            
             // Calculate recess if both times are provided
             if (rOutVal && rInVal) {
                 let rOut = timeToMinutes(rOutVal);
                 let rIn = timeToMinutes(rInVal);
                 if (rIn < rOut) rIn += 24 * 60; // Handle cross-midnight break
                 recessMins = rIn - rOut;
-                deductVal = Math.max(0, recessMins - 60); // Standard break is 60 mins
+                deductVal = Math.max(0, recessMins - 60); // Standard break is 60 mins. Deduct excess.
             }
 
             const results = calculateOvertime(inVal, outVal, deductVal);
+            
             const formatAmPm = (timeStr) => {
                 if (!timeStr) return null;
                 const [h, m] = timeStr.split(':');
@@ -557,6 +570,8 @@
             try {
                 const entriesRef = collection(db, 'artifacts', appProjectName, 'users', currentUser.uid, 'overtime_shifts');
                 await addDoc(entriesRef, entryData);
+                
+                // Clear the form fields after successful save
                 inputIn.value = ''; inputOut.value = ''; 
                 recessOutInput.value = ''; recessInInput.value = '';
             } catch (error) {
@@ -589,7 +604,6 @@
                 'Are you absolutely sure you want to permanently delete ALL tracked shifts? All your data will be wiped out.',
                 'Yes, Clear All',
                 async () => {
-                    // Sequentially delete (batch is better for production but loop is safe for small numbers)
                     for (const entry of entries) {
                         const docRef = doc(db, 'artifacts', appProjectName, 'users', currentUser.uid, 'overtime_shifts', entry.id);
                         await deleteDoc(docRef);
