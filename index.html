@@ -145,17 +145,28 @@
                                 </div>
                             </div>
 
-                            <!-- Deduction Input -->
-                            <div class="space-y-1.5">
-                                <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Extra Break (Mins)</label>
-                                <div class="relative">
-                                    <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                                        <i class="ph ph-coffee text-lg"></i>
+                            <!-- Recess Inputs -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="space-y-1.5">
+                                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Recess Start</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                            <i class="ph ph-coffee text-lg text-amber-500"></i>
+                                        </div>
+                                        <input type="time" id="recess-out" class="w-full pl-10 pr-2 py-3 bg-slate-50 border-0 ring-1 ring-inset ring-slate-200 rounded-xl focus:ring-2 focus:ring-inset focus:ring-amber-500 focus:bg-white outline-none transition-all text-slate-700 font-medium sm:text-sm">
                                     </div>
-                                    <input type="number" id="input-deduct" min="0" placeholder="e.g. 30" class="w-full pl-10 pr-4 py-3 bg-slate-50 border-0 ring-1 ring-inset ring-slate-200 rounded-xl focus:ring-2 focus:ring-inset focus:ring-rose-500 focus:bg-white outline-none transition-all text-slate-700 font-medium sm:text-sm placeholder-slate-400">
                                 </div>
-                                <p class="text-[11px] text-slate-500 mt-1"><i class="ph ph-info"></i> Deducted from total OT hours</p>
+                                <div class="space-y-1.5">
+                                    <label class="block text-xs font-semibold text-slate-600 uppercase tracking-wider">Recess End</label>
+                                    <div class="relative">
+                                        <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                                            <i class="ph ph-coffee text-lg text-amber-600"></i>
+                                        </div>
+                                        <input type="time" id="recess-in" class="w-full pl-10 pr-2 py-3 bg-slate-50 border-0 ring-1 ring-inset ring-slate-200 rounded-xl focus:ring-2 focus:ring-inset focus:ring-amber-500 focus:bg-white outline-none transition-all text-slate-700 font-medium sm:text-sm">
+                                    </div>
+                                </div>
                             </div>
+                            <p class="text-[11px] text-slate-500 mt-1"><i class="ph ph-info"></i> Standard recess is 1 hour (60 mins). Any extra will be deducted from OT.</p>
                             
                             <!-- Error Container -->
                             <div id="error-message" class="hidden text-xs text-rose-700 bg-rose-50 p-4 rounded-xl text-left border border-rose-100 overflow-x-auto break-words font-mono shadow-inner"></div>
@@ -265,7 +276,8 @@
         const inputDate = document.getElementById('input-date');
         const inputIn = document.getElementById('input-in');
         const inputOut = document.getElementById('input-out');
-        const inputDeduct = document.getElementById('input-deduct');
+        const recessOutInput = document.getElementById('recess-out');
+        const recessInInput = document.getElementById('recess-in');
         const entriesBody = document.getElementById('entries-body');
         const emptyState = document.getElementById('empty-state');
         const errorMessage = document.getElementById('error-message');
@@ -385,9 +397,22 @@
                 const month = dateObj.toLocaleDateString('en-MY', { month: 'short' });
                 const year = dateObj.toLocaleDateString('en-MY', { year: 'numeric' });
                 
-                const deductHtml = entry.deductMins > 0 
-                    ? `<span class="inline-flex items-center gap-1 text-[10px] text-rose-600 bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded-full mt-1.5 font-medium"><i class="ph ph-minus"></i> ${entry.deductMins}m break</span>` 
-                    : '';
+                let deductHtml = '';
+                if (entry.recessMins !== undefined && entry.recessMins > 0) {
+                    const extraMins = Math.max(0, entry.recessMins - 60);
+                    const recessTimeDisplay = entry.recessOutDisplay && entry.recessInDisplay 
+                        ? `<div class="text-[10px] text-slate-500 mt-1.5 flex items-center gap-1"><i class="ph ph-coffee"></i> Break: ${entry.recessOutDisplay} - ${entry.recessInDisplay} (${entry.recessMins}m)</div>`
+                        : '';
+                        
+                    let warningHtml = '';
+                    if (extraMins > 0) {
+                        warningHtml = `<span class="inline-flex items-center gap-1 text-[10px] text-rose-600 bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded-full mt-1 font-medium"><i class="ph ph-warning-circle"></i> -${extraMins}m OT deducted</span>`;
+                    }
+                    
+                    deductHtml = recessTimeDisplay + warningHtml;
+                } else if (entry.deductMins > 0) { // Fallback for legacy records
+                    deductHtml = `<span class="inline-flex items-center gap-1 text-[10px] text-rose-600 bg-rose-50 border border-rose-100 px-1.5 py-0.5 rounded-full mt-1.5 font-medium"><i class="ph ph-minus"></i> ${entry.deductMins}m extra break</span>`;
+                }
 
                 tr.innerHTML = `
                     <td class="px-6 py-4">
@@ -479,15 +504,35 @@
             const dateVal = inputDate.value;
             const inVal = inputIn.value;
             const outVal = inputOut.value;
-            const deductVal = parseInt(inputDeduct.value) || 0;
+            const rOutVal = recessOutInput.value;
+            const rInVal = recessInInput.value;
+            
             if (!dateVal || !inVal || !outVal) return;
 
             const originalBtnHtml = submitBtn.innerHTML;
             submitBtn.disabled = true;
             submitBtn.innerHTML = '<i class="ph ph-spinner animate-spin text-lg"></i> Saving...';
 
+            const timeToMinutes = (timeStr) => {
+                if (!timeStr) return 0;
+                const [hours, minutes] = timeStr.split(':').map(Number);
+                return hours * 60 + minutes;
+            };
+
+            let recessMins = 0;
+            let deductVal = 0;
+            // Calculate recess if both times are provided
+            if (rOutVal && rInVal) {
+                let rOut = timeToMinutes(rOutVal);
+                let rIn = timeToMinutes(rInVal);
+                if (rIn < rOut) rIn += 24 * 60; // Handle cross-midnight break
+                recessMins = rIn - rOut;
+                deductVal = Math.max(0, recessMins - 60); // Standard break is 60 mins
+            }
+
             const results = calculateOvertime(inVal, outVal, deductVal);
             const formatAmPm = (timeStr) => {
+                if (!timeStr) return null;
                 const [h, m] = timeStr.split(':');
                 let hours = parseInt(h);
                 const ampm = hours >= 12 ? 'PM' : 'AM';
@@ -498,6 +543,9 @@
                 date: dateVal,
                 inTimeDisplay: formatAmPm(inVal),
                 outTimeDisplay: formatAmPm(outVal),
+                recessOutDisplay: formatAmPm(rOutVal),
+                recessInDisplay: formatAmPm(rInVal),
+                recessMins: recessMins,
                 deductMins: deductVal,
                 otMins: results.totalOTMins,
                 otHHMM: formatHHMM(results.totalOTMins),
@@ -509,7 +557,8 @@
             try {
                 const entriesRef = collection(db, 'artifacts', appProjectName, 'users', currentUser.uid, 'overtime_shifts');
                 await addDoc(entriesRef, entryData);
-                inputIn.value = ''; inputOut.value = ''; inputDeduct.value = '';
+                inputIn.value = ''; inputOut.value = ''; 
+                recessOutInput.value = ''; recessInInput.value = '';
             } catch (error) {
                 showError("Save Failed", `${error.code}: ${error.message}`);
             } finally {
